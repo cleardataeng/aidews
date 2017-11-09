@@ -29,12 +29,12 @@ type Service struct {
 // New returns a pointer to a new Service.
 // ACL is bucket-owner-full-control by default, but can be changed with SetACL.
 // SSE is AES256 by default, but can be changed with SetSSE.
-func New(name string, roleARN *string) *Service {
+func New(name string, region, roleARN *string) *Service {
 	return &Service{
 		acl:  aws.String("bucket-owner-full-control"),
 		name: name,
 		sse:  aws.String("AES256"),
-		svc:  s3.New(aidews.Session(nil, roleARN)),
+		svc:  s3.New(aidews.Session(region, roleARN)),
 	}
 }
 
