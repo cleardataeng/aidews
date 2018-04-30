@@ -37,6 +37,14 @@ func New(host *url.URL, region string, roleARN *string) *Service {
 	}
 }
 
+// Do signs then executes do on passed in request.
+func (svc *Service) Do(req *http.Request) (*http.Response, error) {
+	if _, err := svc.signer.Sign(req, nil, "execute-api", *svc.region, time.Now()); err != nil {
+		return nil, err
+	}
+	return svc.http.Do(req)
+}
+
 // Get from given path.
 func (svc *Service) Get(path string, qs url.Values) (*http.Response, error) {
 	u, err := svc.URL(path, qs)
@@ -44,10 +52,19 @@ func (svc *Service) Get(path string, qs url.Values) (*http.Response, error) {
 		return nil, err
 	}
 	req, _ := http.NewRequest("GET", u.String(), nil)
-	if _, err := svc.signer.Sign(req, nil, "execute-api", *svc.region, time.Now()); err != nil {
+	return svc.Do(req)
+}
+
+// Post to given path.
+func (svc *Service) Post(path string, body interface{}) (*http.Response, error) {
+	b, _ := json.Marshal(body)
+	seeker := bytes.NewReader(b)
+	u, err := svc.URL(path, nil)
+	if err != nil {
 		return nil, err
 	}
-	return svc.http.Do(req)
+	req, _ := http.NewRequest("POST", u.String(), seeker)
+	return svc.Do(req)
 }
 
 // Put to given path.
@@ -59,10 +76,7 @@ func (svc *Service) Put(path string, body interface{}) (*http.Response, error) {
 		return nil, err
 	}
 	req, _ := http.NewRequest("PUT", u.String(), seeker)
-	if _, err := svc.signer.Sign(req, seeker, "execute-api", *svc.region, time.Now()); err != nil {
-		return nil, err
-	}
-	return svc.http.Do(req)
+	return svc.Do(req)
 }
 
 // URL adds a valid path to the Gateway host and adds an encoded query string.
