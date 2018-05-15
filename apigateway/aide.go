@@ -3,6 +3,8 @@ package apigateway
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -39,7 +41,15 @@ func New(host *url.URL, region string, roleARN *string) *Service {
 
 // Do signs then executes do on passed in request.
 func (svc *Service) Do(req *http.Request) (*http.Response, error) {
-	if _, err := svc.signer.Sign(req, nil, "execute-api", *svc.region, time.Now()); err != nil {
+	var body io.ReadSeeker
+	if req.Body != nil {
+		b, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewReader(b)
+	}
+	if _, err := svc.signer.Sign(req, body, "execute-api", *svc.region, time.Now()); err != nil {
 		return nil, err
 	}
 	return svc.http.Do(req)
