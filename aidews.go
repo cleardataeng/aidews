@@ -30,6 +30,24 @@ func Session(region, roleARN *string) *session.Session {
 	return sessionWithConfig(cfg)
 }
 
+// SessionWithConfig returns an aws session.
+// The role_arn parameter is optional. If not given given the
+// session returned is built with the config passed in. If role_arn given, we first STS,
+// then get a session with those using the credentials added to the passed in config.
+//
+// All Sessions are constructed using the SharedConfigEnable setting allowing
+// the use of local credential resolution.
+func SessionWithConfig(cfg aws.Config, roleARN *string) *session.Session {
+	if roleARN != nil {
+		creds := stscreds.NewCredentials(
+			sessionWithConfig(cfg),
+			*roleARN,
+		)
+		cfg.Credentials = creds
+	}
+	return sessionWithConfig(cfg)
+}
+
 func sessionWithConfig(cfg aws.Config) *session.Session {
 	return session.Must(session.NewSessionWithOptions(session.Options{
 		Config:            cfg,
