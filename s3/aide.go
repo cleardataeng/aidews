@@ -9,6 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/cleardataeng/aidews"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"fmt"
 )
 
 // Service for reading and writing to the given bucket.
@@ -74,6 +77,34 @@ func (svc *Service) ReadUnmarshal(key string, out interface{}) error {
 		return err
 	}
 	return json.Unmarshal(data, out)
+}
+
+// ListObjects list the requested number of items in a bucket
+func (svc *Service) ListObjects(maxObjects uint64) (*s3.ListObjectsOutput, error) {
+	input := &s3.ListObjectsInput{
+		Bucket:  aws.String(svc.name),
+		MaxKeys: aws.Int64(int64(maxObjects)),
+	}
+
+	result, err := svc.svc.ListObjects(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case s3.ErrCodeNoSuchBucket:
+				fmt.Println(s3.ErrCodeNoSuchBucket, aerr.Error())
+				return nil, aerr
+			default:
+				fmt.Println(aerr.Error())
+				return nil, aerr
+			}
+		} else {
+			fmt.Println(err.Error())
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // SetACL sets the ACL with which the objects will be stored.

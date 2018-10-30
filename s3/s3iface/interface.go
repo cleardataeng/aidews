@@ -13,4 +13,5 @@ type Service interface {
 	ReadUnmarshal(string, interface{}) error
 	SetACL(*string)
 	SetSSE(*string)
+	ListObjects(maxObjects uint64) (*s3.ListObjectsOutput, error)
 }
