@@ -58,7 +58,7 @@ func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, err
 }
 
 func (r *Object) Read() (*io.ReadCloser, error) {
-	return r.svc.Read(r.Key)
+	return r.Svc.Read(r.Key)
 }
 
 // Read gets the object from the bucket at the key.
