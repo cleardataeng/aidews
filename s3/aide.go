@@ -28,7 +28,7 @@ type Service struct {
 	svc s3iface.S3API
 }
 
-type Reader struct {
+type Object struct {
 	Key string
 	svc Service
 }
@@ -57,7 +57,7 @@ func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, err
 	return svc.svc.PutObject(in)
 }
 
-func (r *Reader) Read() (*io.ReadCloser, error) {
+func (r *Object) Read() (*io.ReadCloser, error) {
 	return read(r.svc.name, r.Key, r.svc.svc)
 }
 
@@ -80,7 +80,7 @@ func (svc *Service) ReadUnmarshal(key string, out interface{}) error {
 }
 
 // ListObjects list the requested number of items in a bucket
-func (svc *Service) ListObjects(maxObjects uint64) ([]Reader, error) {
+func (svc *Service) ListObjects(maxObjects uint64) ([]Object, error) {
 	input := &s3.ListObjectsInput{
 		Bucket:  aws.String(svc.name),
 		MaxKeys: aws.Int64(int64(maxObjects)),
@@ -102,9 +102,9 @@ func (svc *Service) ListObjects(maxObjects uint64) ([]Reader, error) {
 	}
 
 	contents := result.Contents
-	var readers []Reader
+	var readers []Object
 	for _, v := range contents {
-		reader := Reader{Key: *v.Key, svc: *svc}
+		reader := Object{Key: *v.Key, svc: *svc}
 		readers = append(readers, reader)
 	}
 
