@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/cleardataeng/aidews"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"fmt"
 )
@@ -27,6 +26,11 @@ type Service struct {
 
 	// svc is the S3API client.
 	svc s3iface.S3API
+}
+
+type Reader struct {
+	svc Service
+	key string
 }
 
 // New returns a pointer to a new Service.
@@ -53,17 +57,13 @@ func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, err
 	return svc.svc.PutObject(in)
 }
 
+func (r *Reader) Read() (*io.ReadCloser, error) {
+	return read(r.svc.name, r.key, r.svc.svc)
+}
+
 // Read gets the object from the bucket at the key.
 func (svc *Service) Read(key string) (*io.ReadCloser, error) {
-	in := &s3.GetObjectInput{
-		Bucket: aws.String(svc.name),
-	}
-	in.SetKey(key)
-	res, err := svc.svc.GetObject(in)
-	if err != nil {
-		return nil, err
-	}
-	return &res.Body, nil
+	return read(svc.name, key, svc.svc)
 }
 
 // ReadUnmarshal gets the object from the bucket at the key and unmarshals into out.
@@ -80,7 +80,7 @@ func (svc *Service) ReadUnmarshal(key string, out interface{}) error {
 }
 
 // ListObjects list the requested number of items in a bucket
-func (svc *Service) ListObjects(maxObjects uint64) (*s3.ListObjectsOutput, error) {
+func (svc *Service) ListObjects(maxObjects uint64) ([]Reader, error) {
 	input := &s3.ListObjectsInput{
 		Bucket:  aws.String(svc.name),
 		MaxKeys: aws.Int64(int64(maxObjects)),
@@ -104,7 +104,14 @@ func (svc *Service) ListObjects(maxObjects uint64) (*s3.ListObjectsOutput, error
 		return nil, err
 	}
 
-	return result, nil
+	contents := result.Contents
+	var readers []Reader
+	for _, v := range contents {
+		reader := Reader{key: *v.Key, svc: *svc}
+		readers = append(readers, reader)
+	}
+
+	return readers, nil
 }
 
 // SetACL sets the ACL with which the objects will be stored.
@@ -115,4 +122,16 @@ func (svc *Service) SetACL(v *string) {
 // SetSSE sets the server side encryption string for the bucket.
 func (svc *Service) SetSSE(v *string) {
 	svc.sse = v
+}
+
+func read(name string, key string, s3 s3iface.S3API) (*io.ReadCloser, error){
+	in := &s3.GetObjectInput{
+		Bucket: aws.String(name),
+	}
+	in.SetKey(key)
+	res, err := s3.GetObject(in)
+	if err != nil {
+		return nil, err
+	}
+	return &res.Body, nil
 }
