@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/cleardataeng/aidews"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"fmt"
 )
 
 // Service for reading and writing to the given bucket.
@@ -121,12 +121,12 @@ func (svc *Service) SetSSE(v *string) {
 	svc.sse = v
 }
 
-func read(name string, key string, s3 s3iface.S3API) (*io.ReadCloser, error){
+func read(name string, key string, s3Client s3iface.S3API) (*io.ReadCloser, error) {
 	in := &s3.GetObjectInput{
 		Bucket: aws.String(name),
 	}
 	in.SetKey(key)
-	res, err := s3.GetObject(in)
+	res, err := s3Client.GetObject(in)
 	if err != nil {
 		return nil, err
 	}
