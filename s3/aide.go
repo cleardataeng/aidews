@@ -91,14 +91,11 @@ func (svc *Service) ListObjects(maxObjects uint64) ([]Reader, error) {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case s3.ErrCodeNoSuchBucket:
-				fmt.Println(s3.ErrCodeNoSuchBucket, aerr.Error())
 				return nil, aerr
 			default:
-				fmt.Println(aerr.Error())
 				return nil, aerr
 			}
 		} else {
-			fmt.Println(err.Error())
 			return nil, err
 		}
 		return nil, err

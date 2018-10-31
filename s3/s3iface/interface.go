@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	aideS3 "github.com/cleardataeng/aidews/s3"
 )
 
 // Service reads and writes to the given bucket.
@@ -13,5 +14,5 @@ type Service interface {
 	ReadUnmarshal(string, interface{}) error
 	SetACL(*string)
 	SetSSE(*string)
-	ListObjects(maxObjects uint64) (*s3.ListObjectsOutput, error)
+	ListObjects(maxObjects uint64) ([]aideS3.Reader, error)
 }
