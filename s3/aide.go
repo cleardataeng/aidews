@@ -29,8 +29,8 @@ type Service struct {
 }
 
 type Reader struct {
+	Key string
 	svc Service
-	key string
 }
 
 // New returns a pointer to a new Service.
@@ -58,7 +58,7 @@ func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, err
 }
 
 func (r *Reader) Read() (*io.ReadCloser, error) {
-	return read(r.svc.name, r.key, r.svc.svc)
+	return read(r.svc.name, r.Key, r.svc.svc)
 }
 
 // Read gets the object from the bucket at the key.
@@ -107,7 +107,7 @@ func (svc *Service) ListObjects(maxObjects uint64) ([]Reader, error) {
 	contents := result.Contents
 	var readers []Reader
 	for _, v := range contents {
-		reader := Reader{key: *v.Key, svc: *svc}
+		reader := Reader{Key: *v.Key, svc: *svc}
 		readers = append(readers, reader)
 	}
 
