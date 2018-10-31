@@ -28,9 +28,13 @@ type Service struct {
 	svc s3iface.S3API
 }
 
+type ReaderService interface {
+	Read(string) (*io.ReadCloser, error)
+}
+
 type Object struct {
 	Key string
-	Svc Service
+	Svc ReaderService
 }
 
 // New returns a pointer to a new Service.
@@ -57,7 +61,7 @@ func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, err
 	return svc.svc.PutObject(in)
 }
 
-func (r *Object) Read() (*io.ReadCloser, error) {
+func (r *Object) ReadObject() (*io.ReadCloser, error) {
 	return r.Svc.Read(r.Key)
 }
 
@@ -104,7 +108,7 @@ func (svc *Service) ListObjects(maxObjects uint64) ([]Object, error) {
 	contents := result.Contents
 	var readers []Object
 	for _, v := range contents {
-		reader := Object{Key: *v.Key, Svc: *svc}
+		reader := Object{Key: *v.Key, Svc: svc}
 		readers = append(readers, reader)
 	}
 
