@@ -1,87 +1,95 @@
 package s3
 
 import (
-	"encoding/json"
-	"io"
-	"io/ioutil"
+	"bytes"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/cleardataeng/aidews"
 )
 
-// Service for reading and writing to the given bucket.
-type Service struct {
-	// acl is the default ACL for bucket objects.
-	acl *string
+// Bucket allows access and control of an S3 bucket.
+type Bucket struct {
+	// Name of the bucket.
+	Name string
 
-	// name of the bucket.
-	name string
-
-	// sse is the default server side encryption setting.
-	sse *string
-
-	// svc is the S3API client.
-	svc s3iface.S3API
+	// Svc is the S3API client.
+	// If not provided, default credential resolution will take place.
+	Svc s3iface.S3API
 }
 
-// New returns a pointer to a new Service.
-// ACL is bucket-owner-full-control by default, but can be changed with SetACL.
-// SSE is AES256 by default, but can be changed with SetSSE.
-func New(name string, region, roleARN *string) *Service {
-	return &Service{
-		acl:  aws.String("bucket-owner-full-control"),
-		name: name,
-		sse:  aws.String("AES256"),
-		svc:  s3.New(aidews.Session(region, roleARN)),
+// Object allows access to S3 objects.
+type Object struct {
+	// ACL is the ACL for an object.
+	// If empty "bucket-owner-full-control" will be used.
+	ACL string
+
+	// Bucket in which the object belongs.
+	Bucket Bucket
+
+	// Key at which the object is or shall be stored.
+	Key string
+
+	// SSE is the server side encryption setting.
+	// If empty "AES256" will be used.
+	SSE string
+}
+
+// Objects is a simple constructor helper function taking a list of
+// strings, S3 keys, and generating []Object.
+// The idea is to get a list of objects from the main AWS SDK, using
+// the full blow input, then passing the returned keys to this function.
+// From there, since each object is implementing io.Reader, you can
+// easily Read from each.
+func (b Bucket) Objects(keys []string) []Object {
+	objs := []Object{}
+	for _, k := range keys {
+		o := Object{
+			Bucket: b,
+			Key:    k,
+		}
+		objs = append(objs, o)
 	}
+	return []Object{}
 }
 
-// Put puts the content to the bucket at the key.
-func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, error) {
+// Read satisfied the io.Reader interface for Object.
+// Using this I can use Object anywhere an io.Reader is expected. Of
+// course, you could just use s3.GetObject, and then Read from the Body,
+// but the intent here is to simplify that process.
+func (o Object) Read(b []byte) (n int, err error) {
+	in := new(s3.GetObjectInput)
+	in.SetBucket(o.Bucket.Name)
+	in.SetKey(o.Key)
+	res, err := o.Bucket.Svc.GetObject(in)
+	if err != nil {
+		return 0, err
+	}
+	return res.Body.Read(b)
+}
+
+// Write satisfies the io.Writer interface for Object.
+// You can construct an Object complete with Key and Bucket, and
+// optionally, ACL and SSE, then use that anywhere an io.Writer is
+// expected. You won't have buffered write, since we are using the
+// simplified upload. You will only get 0 bytes written for failures
+// or the total length of bytes is success.
+func (o Object) Write(p []byte) (n int, err error) {
+	if o.ACL == "" {
+		o.ACL = "bucket-owner-full-control"
+	}
+	if o.SSE == "" {
+		o.SSE = "AES256"
+	}
 	in := &s3.PutObjectInput{
-		ACL:                  svc.acl,
-		Body:                 aws.ReadSeekCloser(content),
-		Bucket:               aws.String(svc.name),
-		Key:                  aws.String(key),
-		ServerSideEncryption: svc.sse,
+		ACL:                  aws.String(o.ACL),
+		Body:                 bytes.NewReader(p),
+		Bucket:               aws.String(o.Bucket.Name),
+		Key:                  aws.String(o.Key),
+		ServerSideEncryption: aws.String(o.SSE),
 	}
-	return svc.svc.PutObject(in)
-}
-
-// Read gets the object from the bucket at the key.
-func (svc *Service) Read(key string) (*io.ReadCloser, error) {
-	in := &s3.GetObjectInput{
-		Bucket: aws.String(svc.name),
+	if _, err := o.Bucket.Svc.PutObject(in); err != nil {
+		return 0, err
 	}
-	in.SetKey(key)
-	res, err := svc.svc.GetObject(in)
-	if err != nil {
-		return nil, err
-	}
-	return &res.Body, nil
-}
-
-// ReadUnmarshal gets the object from the bucket at the key and unmarshals into out.
-func (svc *Service) ReadUnmarshal(key string, out interface{}) error {
-	obj, err := svc.Read(key)
-	if err != nil {
-		return err
-	}
-	data, err := ioutil.ReadAll(*obj)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, out)
-}
-
-// SetACL sets the ACL with which the objects will be stored.
-func (svc *Service) SetACL(v *string) {
-	svc.acl = v
-}
-
-// SetSSE sets the server side encryption string for the bucket.
-func (svc *Service) SetSSE(v *string) {
-	svc.sse = v
+	return len(p), nil
 }
