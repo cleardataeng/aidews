@@ -28,10 +28,12 @@ type Service struct {
 	svc s3iface.S3API
 }
 
+// ReaderService is an interface that gets implemented by readers, and easily testable
 type ReaderService interface {
 	Read(string) (*io.ReadCloser, error)
 }
 
+// Object represents an S3 object retrieved from s3
 type Object struct {
 	Key string
 	Svc ReaderService
@@ -61,6 +63,7 @@ func (svc *Service) Put(key string, content io.Reader) (*s3.PutObjectOutput, err
 	return svc.svc.PutObject(in)
 }
 
+// ReadObject gets the actual object of the key in the receiver
 func (r *Object) ReadObject() (*io.ReadCloser, error) {
 	return r.Svc.Read(r.Key)
 }
