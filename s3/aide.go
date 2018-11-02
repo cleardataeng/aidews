@@ -50,7 +50,7 @@ func (b Bucket) Objects(keys []string) []Object {
 		}
 		objs = append(objs, o)
 	}
-	return []Object{}
+	return objs
 }
 
 // Read satisfied the io.Reader interface for Object.
