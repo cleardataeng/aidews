@@ -74,7 +74,7 @@ func TestUnmarshalJSON_errSliceUnmarshal(t *testing.T) {
 		SS1 StrOrSlice
 	}{}
 	j := []byte(`{"SS0": "test", "SS1": {"noobjects": ["test", "slice"]}}`)
-	want := "json: cannot unmarshal object into Go struct field .SS1 of type []string"
+	want := "json: cannot unmarshal object into Go value of type []string"
 	if err := json.Unmarshal(j, &res); err == nil {
 		t.Errorf("expected error; want: %s", err)
 	} else {
