@@ -27,7 +27,7 @@ type IAMPolicyStatement struct {
 	Effect    string
 	Action    StrOrSlice
 	Resource  StrOrSlice
-	Condition StrOrSlice `json:",omitempty"`
+	Condition map[string]interface{} `json:",omitempty"`
 }
 
 // StrOrSlice is a helper for objects that could be strings or slices.
