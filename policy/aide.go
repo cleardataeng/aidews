@@ -27,6 +27,7 @@ type IAMPolicyStatement struct {
 	Effect    string
 	Action    StrOrSlice
 	Resource  StrOrSlice
+	Principal map[string]interface{} `json:",omitempty"`
 	Condition map[string]interface{} `json:",omitempty"`
 }
 
