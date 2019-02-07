@@ -30,23 +30,20 @@ type Service struct {
 // ACL is bucket-owner-full-control by default, but can be changed with SetACL.
 // SSE is AES256 by default, but can be changed with SetSSE.
 func New(name string, region, roleARN *string) *Service {
-	service := new(name)
-	service.svc = s3.New(aidews.Session(region, roleARN))
-	return service
+	return newWithSvc(name, s3.New(aidews.Session(region, roleARN)))
 }
 
 // NewWithConfig return a pointer to a new Service using a provided aws.Config object
 func NewWithConfig(name string, cfg aws.Config, roleARN *string) *Service {
-	service := new(name)
-	service.svc = s3.New(aidews.SessionWithConfig(cfg, roleARN))
-	return service
+	return newWithSvc(name, s3.New(aidews.SessionWithConfig(cfg, roleARN)))
 }
 
-func new(name string) *Service {
+func newWithSvc(name string, svc s3iface.S3API) *Service {
 	return &Service{
 		acl:  aws.String("bucket-owner-full-control"),
 		name: name,
 		sse:  aws.String("AES256"),
+		svc:  svc,
 	}
 }
 
