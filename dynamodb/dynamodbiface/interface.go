@@ -7,4 +7,5 @@ type Service interface {
 	GetItem(*dynamodb.GetItemInput, interface{}) error
 	Query(*dynamodb.QueryInput, interface{}) error
 	Scan(*dynamodb.ScanInput, interface{}) error
+	PutItem(*dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error)
 }

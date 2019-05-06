@@ -63,3 +63,8 @@ func (svc *Service) Scan(in *dynamodb.ScanInput, out interface{}) error {
 	}
 	return dynamodbattribute.UnmarshalListOfMaps(items, out)
 }
+
+// PutItem in the table.
+func (svc *Service) PutItem(in *dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error) {
+	return svc.svc.PutItem(in)
+}
