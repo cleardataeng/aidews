@@ -66,3 +66,84 @@ errored:
 		t.Errorf("List wanted %s got %s", "baz", output.List[1])
 	}
 }
+
+func TestIAMPolicyYAML(t *testing.T) {
+	policy := IAMPolicy{
+		Version: "12",
+	}
+	out, err := yaml.Marshal(policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	want := "Version: \"12\"\nStatement: []\n"
+	if string(out) != want {
+		t.Errorf("unexpected out; want: %s got %s", want, string(out))
+	}
+}
+
+func TestIAMPolicyStatementEmptyYAML(t *testing.T) {
+	policy := IAMPolicyStatement{
+		ID: "12",
+	}
+	out, err := yaml.Marshal(policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	want := `Sid: "12"
+Effect: ""
+Action: []
+`
+	if string(out) != want {
+		t.Errorf("unexpected out; want: %s got %s", want, string(out))
+	}
+}
+
+func TestIAMPolicyStatementNotEmptyYAML(t *testing.T) {
+	policy := IAMPolicyStatement{
+		ID:        "12",
+		Effect:    "allow",
+		Action:    StrOrSlice{"iam:Login"},
+		Resource:  StrOrSlice{"iam:"},
+		Principal: map[string]interface{}{"AWS": "iam"},
+		Condition: map[string]interface{}{"String": "matching ARN"},
+	}
+	out, err := yaml.Marshal(policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	want := `Sid: "12"
+Effect: allow
+Action: iam:Login
+Resource: '''iam:'''
+Principal:
+  AWS: iam
+Condition:
+  String: matching ARN
+`
+	if string(out) != want {
+		t.Errorf("unexpected out; want: %s got %s", want, string(out))
+	}
+}
+
+func TestIAMPolicyStatementUnmarshalYAML(t *testing.T) {
+	in := `Sid: "12"
+Effect: allow
+Action: iam:Login
+Resource: '''iam:'''
+Principal:
+  AWS: iam
+Condition:
+  String: matching ARN
+`
+	policy := IAMPolicyStatement{}
+	err := yaml.Unmarshal(([]byte)(in), &policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	if policy.ID != "12" {
+		t.Errorf("want: %s got: %s", "12", policy.ID)
+	}
+	if policy.Action[0] != "iam:Login" {
+		t.Errorf("want: %s got: %s", "iam:Login", policy.Action)
+	}
+}

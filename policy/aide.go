@@ -17,18 +17,18 @@ import (
 
 // IAMPolicy is an AWS IAM policy document used for converting to and from json.
 type IAMPolicy struct {
-	Version   string
-	Statement []IAMPolicyStatement
+	Version   string               `yaml:"Version"`
+	Statement []IAMPolicyStatement `yaml:"Statement"`
 }
 
 // IAMPolicyStatement is a statement object within an AWS IAM policy.
 type IAMPolicyStatement struct {
-	ID        string `json:"Sid"`
-	Effect    string
-	Action    StrOrSlice
-	Resource  StrOrSlice             `json:",omitempty"`
-	Principal map[string]interface{} `json:",omitempty"`
-	Condition map[string]interface{} `json:",omitempty"`
+	ID        string                 `json:"Sid" yaml:"Sid"`
+	Effect    string                 `yaml:"Effect"`
+	Action    StrOrSlice             `yaml:"Action"`
+	Resource  StrOrSlice             `json:",omitempty" yaml:"Resource,omitempty"`
+	Principal map[string]interface{} `json:",omitempty" yaml:"Principal,omitempty"`
+	Condition map[string]interface{} `json:",omitempty" yaml:"Condition,omitempty"`
 }
 
 // StrOrSlice is a helper for objects that could be strings or slices.
