@@ -74,12 +74,57 @@ func TestUnmarshalJSON_errSliceUnmarshal(t *testing.T) {
 		SS1 StrOrSlice
 	}{}
 	j := []byte(`{"SS0": "test", "SS1": {"noobjects": ["test", "slice"]}}`)
-	want := "json: cannot unmarshal object into Go value of type []string"
+	want := "json: cannot unmarshal object into Go struct field .SS1 of type []string"
 	if err := json.Unmarshal(j, &res); err == nil {
 		t.Errorf("expected error; want: %s", err)
 	} else {
 		if err.Error() != want {
 			t.Errorf("unexpected error; want: %s, got: %s", want, err)
 		}
+	}
+}
+
+func TestIAMPolicyJSON(t *testing.T) {
+	policy := IAMPolicy{
+		Version: "12",
+	}
+	out, err := json.Marshal(policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	want := "{\"Version\":\"12\",\"Statement\":null}"
+	if string(out) != want {
+		t.Errorf("unexpected out; want: %s got %s", want, string(out))
+	}
+}
+
+func TestIAMPolicyStatementEmptyJSON(t *testing.T) {
+	policy := IAMPolicyStatement{
+		ID: "12",
+	}
+	out, err := json.Marshal(policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	want := "{\"Sid\":\"12\",\"Effect\":\"\",\"Action\":null}"
+	if string(out) != want {
+		t.Errorf("unexpected out; want: %s got %s", want, string(out))
+	}
+}
+
+func TestIAMPolicyStatementNotEmptyJSON(t *testing.T) {
+	policy := IAMPolicyStatement{
+		ID:        "12",
+		Resource:  StrOrSlice{"iam:"},
+		Principal: map[string]interface{}{"AWS": "iam"},
+		Condition: map[string]interface{}{"String": "matching ARN"},
+	}
+	out, err := json.Marshal(policy)
+	if err != nil {
+		t.Errorf("unexpected error; got: %s", err)
+	}
+	want := `{"Sid":"12","Effect":"","Action":null,"Resource":["iam:"],"Principal":{"AWS":"iam"},"Condition":{"String":"matching ARN"}}`
+	if string(out) != want {
+		t.Errorf("unexpected out; want: %s got %s", want, string(out))
 	}
 }
