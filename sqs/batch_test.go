@@ -1,4 +1,4 @@
-package sqsbatch
+package sqs
 
 //go:generate mockgen -destination=extmocks/aws/sqs/mocks/mock.go github.com/aws/aws-sdk-go/service/sqs/sqsiface SQSAPI
 
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/cleardataeng/aidews/sqsbatch/extmocks/aws/sqs/mocks"
+	"github.com/cleardataeng/aidews/sqs/extmocks/aws/sqs/mocks"
 	"github.com/golang/mock/gomock"
 	"testing"
 )
@@ -42,7 +42,7 @@ func compareInputs(t *testing.T, entries []*sqs.SendMessageBatchRequestEntry, ba
 }
 
 func TestIface(t *testing.T) {
-	var _ Iface = &SqsBatch{}
+	var _ Iface = &Batch{}
 }
 
 func TestBatch(t *testing.T) {
@@ -59,7 +59,7 @@ func TestBatch(t *testing.T) {
 			},
 		)
 
-	b := New(sqsmock, "foo")
+	b := NewBatch(sqsmock, "foo")
 	for _, entry := range entries {
 		b.Add(entry)
 	}
@@ -72,7 +72,7 @@ func TestSend(t *testing.T) {
 
 	entries := entries()[:2]
 
-	b := New(sqsmock, "foo")
+	b := NewBatch(sqsmock, "foo")
 	for _, entry := range entries {
 		b.Add(entry)
 	}
@@ -94,7 +94,7 @@ func TestSendWithError(t *testing.T) {
 
 	entries := entries()[:2]
 
-	b := New(sqsmock, "foo")
+	b := NewBatch(sqsmock, "foo")
 	for _, entry := range entries {
 		b.Add(entry)
 	}
@@ -121,7 +121,7 @@ func TestSendWithNoMessages(t *testing.T) {
 	defer ctrl.Finish()
 	sqsmock := mock_sqsiface.NewMockSQSAPI(ctrl)
 
-	b := New(sqsmock, "foo")
+	b := NewBatch(sqsmock, "foo")
 
 	sqsmock.EXPECT().SendMessageBatch(gomock.Any()).Times(0)
 
