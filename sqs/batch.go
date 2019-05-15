@@ -1,5 +1,7 @@
-// Package sqsbatch helps us send batched messages to an SQS queue.
-// Use New() to get an SqsBatch object. Use the object's Add() method to add as many messages as you want.
+// Package sqs helps us send messages to an SQS queue.
+//
+// Specifically, batch sending:
+// Use NewBatch() to get a Batch object. Use the object's Add() method to add as many messages as you want.
 // The object will add them to the queue in batches of 10 (so that's 1 AWS API call every 10 messages).
 // After you are done adding messages, call Send() to finish sending the messages. (If you Add() 23 messages,
 // 20 will get sent automatically in 2 batches, but you need an explicit Send() to send the last 3.)
@@ -8,7 +10,7 @@
 // 	sqsbatch.Add(msg)
 // }
 // sqsbatch.Send()
-package sqsbatch
+package sqs
 
 import (
 	"fmt"
@@ -22,8 +24,8 @@ import (
 // https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-messages
 const maxSqsBatchEntries = 10
 
-// SqsBatch object
-type SqsBatch struct {
+// Batch object
+type Batch struct {
 	sqsiface.SQSAPI
 	queueURL *string
 	messages []*sqs.SendMessageBatchRequestEntry
@@ -36,20 +38,20 @@ type Iface interface {
 	Send() (err error)
 }
 
-// New takes an SQS API interface and SQS queue URL for the target SQS queue.
+// NewBatch takes an SQS API interface and SQS queue URL for the target SQS queue.
 // Returns a struct that can Add() and Send() messages.
-func New(sqsapi sqsiface.SQSAPI, queueURL string) *SqsBatch {
+func NewBatch(sqsapi sqsiface.SQSAPI, queueURL string) *Batch {
 	batchInput := sqs.SendMessageBatchInput{
 		QueueUrl: aws.String(queueURL),
 	}
-	return &SqsBatch{
+	return &Batch{
 		SQSAPI:                sqsapi,
 		SendMessageBatchInput: &batchInput,
 	}
 }
 
 // Add the message to the batch
-func (r *SqsBatch) Add(message *sqs.SendMessageBatchRequestEntry) (err error) {
+func (r *Batch) Add(message *sqs.SendMessageBatchRequestEntry) (err error) {
 	if err := message.Validate(); err != nil {
 		return err
 	}
@@ -61,7 +63,7 @@ func (r *SqsBatch) Add(message *sqs.SendMessageBatchRequestEntry) (err error) {
 }
 
 // Send any batched messages to the queue
-func (r *SqsBatch) Send() (err error) {
+func (r *Batch) Send() (err error) {
 	if len(r.messages) < 1 {
 		return nil
 	}
