@@ -14,7 +14,6 @@ package sqs
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	log "github.com/sirupsen/logrus"
@@ -32,22 +31,23 @@ type Batch struct {
 	*sqs.SendMessageBatchInput
 }
 
-// Iface for testing
-type Iface interface {
-	Add(message *sqs.SendMessageBatchRequestEntry) (err error)
-	Send() (err error)
+// BatchIface for testing
+type BatchIface interface {
+	SetQueueURL(*string)
+	Add(message *sqs.SendMessageBatchRequestEntry) error
+	Send() error
 }
 
 // NewBatch takes an SQS API interface and SQS queue URL for the target SQS queue.
 // Returns a struct that can Add() and Send() messages.
-func NewBatch(sqsapi sqsiface.SQSAPI, queueURL string) *Batch {
-	batchInput := sqs.SendMessageBatchInput{
-		QueueUrl: aws.String(queueURL),
-	}
-	return &Batch{
-		SQSAPI:                sqsapi,
-		SendMessageBatchInput: &batchInput,
-	}
+// queueURL can be set later with SetQueueURL()
+func NewBatch(sqsapi sqsiface.SQSAPI, queueURL *string) *Batch {
+	return &Batch{SQSAPI: sqsapi, queueURL: queueURL}
+}
+
+// SetQueueURL sets the queue URL
+func (r *Batch) SetQueueURL(queueURL *string) {
+	r.queueURL = queueURL
 }
 
 // Add the message to the batch
@@ -66,6 +66,11 @@ func (r *Batch) Add(message *sqs.SendMessageBatchRequestEntry) (err error) {
 func (r *Batch) Send() (err error) {
 	if len(r.messages) < 1 {
 		return nil
+	}
+	if r.SendMessageBatchInput == nil {
+		r.SendMessageBatchInput = &sqs.SendMessageBatchInput{
+			QueueUrl: r.queueURL,
+		}
 	}
 	r.SendMessageBatchInput.SetEntries(r.messages)
 	result, err := r.SQSAPI.SendMessageBatch(r.SendMessageBatchInput)

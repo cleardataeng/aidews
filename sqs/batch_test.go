@@ -41,8 +41,8 @@ func compareInputs(t *testing.T, entries []*sqs.SendMessageBatchRequestEntry, ba
 	return &sqs.SendMessageBatchOutput{Failed: nil}, nil
 }
 
-func TestIface(t *testing.T) {
-	var _ Iface = &Batch{}
+func TestBatchIface(t *testing.T) {
+	var _ BatchIface = &Batch{}
 }
 
 func TestBatch(t *testing.T) {
@@ -59,7 +59,8 @@ func TestBatch(t *testing.T) {
 			},
 		)
 
-	b := NewBatch(sqsmock, "foo")
+	b := NewBatch(sqsmock, nil)
+	b.SetQueueURL(aws.String("foo"))
 	for _, entry := range entries {
 		b.Add(entry)
 	}
@@ -72,7 +73,8 @@ func TestSend(t *testing.T) {
 
 	entries := entries()[:2]
 
-	b := NewBatch(sqsmock, "foo")
+	foo := aws.String("foo")
+	b := NewBatch(sqsmock, foo)
 	for _, entry := range entries {
 		b.Add(entry)
 	}
@@ -94,7 +96,8 @@ func TestSendWithError(t *testing.T) {
 
 	entries := entries()[:2]
 
-	b := NewBatch(sqsmock, "foo")
+	foo := aws.String("foo")
+	b := NewBatch(sqsmock, foo)
 	for _, entry := range entries {
 		b.Add(entry)
 	}
@@ -121,7 +124,8 @@ func TestSendWithNoMessages(t *testing.T) {
 	defer ctrl.Finish()
 	sqsmock := mock_sqsiface.NewMockSQSAPI(ctrl)
 
-	b := NewBatch(sqsmock, "foo")
+	foo := aws.String("foo")
+	b := NewBatch(sqsmock, foo)
 
 	sqsmock.EXPECT().SendMessageBatch(gomock.Any()).Times(0)
 
