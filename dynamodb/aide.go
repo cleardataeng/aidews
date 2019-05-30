@@ -38,6 +38,14 @@ func (svc *Service) GetItem(in *dynamodb.GetItemInput, out interface{}) error {
 	return dynamodbattribute.UnmarshalMap(resp.Item, out)
 }
 
+// PutItem by marshalling the given interafce{} into the given PutItemInput.
+func (svc *Service) PutItem(in *dynamodb.PutItemInput, item interface{}) (out *dynamodb.PutItemOutput, err error) {
+	if in.Item, err = dynamodbattribute.MarshalMap(item); err != nil {
+		return nil, err
+	}
+	return svc.svc.PutItem(in)
+}
+
 // Query the table and unmarshal all results.
 func (svc *Service) Query(in *dynamodb.QueryInput, out interface{}) error {
 	items := []map[string]*dynamodb.AttributeValue{}
