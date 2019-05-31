@@ -14,19 +14,19 @@ All Sessions are constructed using the SharedConfigEnable setting allowing
 the use of local credential resolution.
 
 
-```
+``` go
 // Session with no additional configuration
 sess := aidews.Session(nil, nil)
 ```
 
-```
+``` go
 // Session with region set
 region := "us-west-2"
 sess := aidews.Session(&region, nil)
 ```
 
 
-```
+``` go
 // Session with role set, this will get a session assumed into the role passed in
 role := "arn:aws:iam::{{accounttId}}:role/role_name"
 sess := aidews.Session(nil, &role)
@@ -35,7 +35,7 @@ sess := aidews.Session(nil, &role)
 ## apigateway
 adiews apigateway package provides helpers for making signed requests to api gateways
 
-```
+``` go
 // Create client
 host, _ := url.Parse("apigatewayUrl") // url.Url for apigateway
 role := "arn:aws:iam::{{accounttId}}:role/role_name" // role with access to execute api
@@ -67,7 +67,7 @@ resp, err := client.Post("hokey/pokey", body)
 
 If your favorite HTTP verb is not present in our helpers, you may use the Do function
 
-```
+``` go
 //Do
 req, _ := http.NewRequest("DELETE", "we/all/fall/down", nil)
 resp, err := client.Do(req)
