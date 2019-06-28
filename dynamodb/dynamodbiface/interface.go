@@ -9,4 +9,5 @@ type Service interface {
 	Query(*dynamodb.QueryInput, interface{}) error
 	QueryPages(in *dynamodb.QueryInput, outItems []interface{}, outPager func(interface{}, bool) bool) error
 	Scan(*dynamodb.ScanInput, interface{}) error
+	ScanPages(in *dynamodb.ScanInput, outItems []interface{}, outPager func(interface{}, bool) bool) error
 }
