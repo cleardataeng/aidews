@@ -115,3 +115,26 @@ if err := ScanPages(queryInput, item, pager); err != nil {
 }
 ```
 
+### Batch
+
+Package batch provides an aide for dynamodb's BatchWriteItem function.
+This aide wraps the complexities of building the batch and retrying unprocessed items,
+at the cost of being able to only do 1 table at a time.
+
+Use NewBatch() to get a Batchobject. SetTableName(), and then
+use the object's Add() method to add as many dynamodb items as you want.
+
+The object will add them to the queue in batches of 10 (so that's 1 AWS API call every 10 items).
+After you are done adding items, call Send() to finish sending the items. (If you Put() 23 items,
+20 will get sent automatically in 2 batches, but you need an explicit Send() to send the last 3.)
+Example:
+
+```go
+for _, item := range items {
+	 capacity, err := batch.Add(PutRequest, item)
+}
+batch.Send()
+```
+
+Tell Add() whether it's a PutRequest or a DeleteRequest, and pass either the item to be put
+or the Key of the item to be deleted. Either way, pass a map[string]*dynamodb.AttributeValue{}
