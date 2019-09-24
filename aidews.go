@@ -5,8 +5,24 @@ package aidews
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
 )
+
+func session(session *session.Session, region, roleARN *string) *session.Session {
+	cfg := aws.Config{
+		Region: region,
+	}
+	if session == nil {
+		session = sessionWithConfig(cfg)
+	}
+	if roleARN != nil {
+		creds := stscreds.NewCredentials(
+			session,
+			*roleARN,
+		)
+		cfg.Credentials = creds
+	}
+	return sessionWithConfig(cfg)
+}
 
 // Session returns an aws session.
 // The region and role_arn parameters are optional. If neither are given the
@@ -17,17 +33,14 @@ import (
 // All Sessions are constructed using the SharedConfigEnable setting allowing
 // the use of local credential resolution.
 func Session(region, roleARN *string) *session.Session {
-	cfg := aws.Config{
-		Region: region,
-	}
-	if roleARN != nil {
-		creds := stscreds.NewCredentials(
-			sessionWithConfig(cfg),
-			*roleARN,
-		)
-		cfg.Credentials = creds
-	}
-	return sessionWithConfig(cfg)
+	return session(nil, region, roleARN)
+}
+
+// SessionHop returns an aws session constructed from a given Session.
+// This is very similar to Session, but allows hopping from a given session, to
+// the next destination role.
+func SessionHop(session *session.Session, region, roleARN *string) *session.Session {
+	return session(session, region, roleARN)
 }
 
 // SessionWithConfig returns an aws session.
