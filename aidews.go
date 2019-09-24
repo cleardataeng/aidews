@@ -39,8 +39,8 @@ func Session(region, roleARN *string) *session.Session {
 // SessionHop returns an aws session constructed from a given Session.
 // This is very similar to Session, but allows hopping from a given session, to
 // the next destination role.
-func SessionHop(session *session.Session, region, roleARN *string) *session.Session {
-	return session(session, region, roleARN)
+func SessionHop(s *session.Session, region, roleARN *string) *session.Session {
+	return session(s, region, roleARN)
 }
 
 // SessionWithConfig returns an aws session.
