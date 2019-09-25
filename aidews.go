@@ -5,9 +5,10 @@ package aidews
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func session(session *session.Session, region, roleARN *string) *session.Session {
+func newSession(session *session.Session, region, roleARN *string) *session.Session {
 	cfg := aws.Config{
 		Region: region,
 	}
@@ -33,7 +34,7 @@ func session(session *session.Session, region, roleARN *string) *session.Session
 // All Sessions are constructed using the SharedConfigEnable setting allowing
 // the use of local credential resolution.
 func Session(region, roleARN *string) *session.Session {
-	return session(nil, region, roleARN)
+	return newSession(nil, region, roleARN)
 }
 
 // SessionHop returns an aws session constructed from a given Session.
@@ -46,8 +47,8 @@ func Session(region, roleARN *string) *session.Session {
 // hop1 := SessionHop(start, region, hop1ARN)
 // hop2 := SessionHop(hop1, region, hop2ARN)
 // destination := SessionHop(hop2, region, destARN)
-func SessionHop(s *session.Session, region, roleARN *string) *session.Session {
-	return session(s, region, roleARN)
+func SessionHop(session *session.Session, region, roleARN *string) *session.Session {
+	return newSession(session, region, roleARN)
 }
 
 // SessionWithConfig returns an aws session.
