@@ -51,11 +51,11 @@ func Equal(a, b []byte) (bool, error) {
 // interface provided by the json package.
 // If the length of the given item is only one, we marshal the string. If
 // greater than one, we marshal the slice as an array.
-func (ss *StrOrSlice) MarshalJSON() ([]byte, error) {
-	if len(*ss) == 1 {
-		return json.Marshal(([]string)(*ss)[0])
+func (ss StrOrSlice) MarshalJSON() ([]byte, error) {
+	if len(ss) == 1 {
+		return json.Marshal(([]string)(ss)[0])
 	}
-	return json.Marshal(*ss)
+	return json.Marshal([]string(ss))
 }
 
 // UnmarshalJSON is a method on custom type StringOrSlice that satisfies the
