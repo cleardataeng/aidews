@@ -105,7 +105,7 @@ func TestIAMPolicyStatementNotEmptyYAML(t *testing.T) {
 		Effect:    "allow",
 		Action:    StrOrSlice{"iam:Login"},
 		Resource:  StrOrSlice{"iam:"},
-		Principal: map[string]interface{}{"AWS": "iam"},
+		Principal: map[string]StrOrSlice{"AWS": StrOrSlice{"iam"}},
 		Condition: map[string]interface{}{"String": "matching ARN"},
 	}
 	out, err := yaml.Marshal(policy)

@@ -116,14 +116,14 @@ func TestIAMPolicyStatementNotEmptyJSON(t *testing.T) {
 	policy := IAMPolicyStatement{
 		ID:        "12",
 		Resource:  StrOrSlice{"iam:"},
-		Principal: map[string]interface{}{"AWS": "iam"},
+		Principal: map[string]StrOrSlice{"AWS": StrOrSlice{"iam"}},
 		Condition: map[string]interface{}{"String": "matching ARN"},
 	}
 	out, err := json.Marshal(policy)
 	if err != nil {
 		t.Errorf("unexpected error; got: %s", err)
 	}
-	want := `{"Sid":"12","Effect":"","Action":null,"Resource":["iam:"],"Principal":{"AWS":"iam"},"Condition":{"String":"matching ARN"}}`
+	want := `{"Sid":"12","Effect":"","Action":null,"Resource":"iam:","Principal":{"AWS":"iam"},"Condition":{"String":"matching ARN"}}`
 	if string(out) != want {
 		t.Errorf("unexpected out; want: %s got %s", want, string(out))
 	}
