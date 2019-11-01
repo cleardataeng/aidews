@@ -1,8 +1,9 @@
 package policy
 
 import (
-	"github.com/go-yaml/yaml"
 	"testing"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 func TestMarshalYAML(t *testing.T) {

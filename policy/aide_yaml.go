@@ -3,8 +3,9 @@ package policy
 // CloudFormation templates are often in YAML, so we have a YAML serializer/deserializer.
 
 import (
-	"github.com/go-yaml/yaml"
 	"strings"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 // MarshalYAML is a method on custom type StringOrSlice that satisfies the
