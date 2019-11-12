@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/signer/v4"
+	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/cleardataeng/aidews"
 )
 
@@ -20,14 +20,20 @@ type HTTPClient interface {
 
 // Service for making signed requests.
 type Service struct {
-	signer *v4.Signer
-	http   HTTPClient
-	host   *url.URL
-	region *string
+	signer  *v4.Signer
+	http    HTTPClient
+	host    *url.URL
+	region  *string
+	headers map[string]string
 }
 
 // New returns an API with which you can make API Gateway signed requests.
 func New(host *url.URL, region string, roleARN *string) *Service {
+	return NewWithHeaders(host, region, roleARN, nil)
+}
+
+// NewWithHeaders returns an API with which you can make API Gateway signed requests with headers.
+func NewWithHeaders(host *url.URL, region string, roleARN *string, headers map[string]string) *Service {
 	s := aidews.Session(&region, roleARN)
 	return &Service{
 		signer: v4.NewSigner(s.Config.Credentials),
@@ -36,6 +42,7 @@ func New(host *url.URL, region string, roleARN *string) *Service {
 		http: &http.Client{
 			Timeout: time.Second * 60,
 		},
+		headers: headers,
 	}
 }
 
@@ -48,6 +55,11 @@ func (svc *Service) Do(req *http.Request) (*http.Response, error) {
 			return nil, err
 		}
 		body = bytes.NewReader(b)
+	}
+	if svc.headers != nil {
+		for key, value := range svc.headers {
+			req.Header.Set(key, value)
+		}
 	}
 	if _, err := svc.signer.Sign(req, body, "execute-api", *svc.region, time.Now()); err != nil {
 		return nil, err
