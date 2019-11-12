@@ -65,6 +65,17 @@ body := struct{
 resp, err := client.Post("hokey/pokey", body)
 ```
 
+If you need to pass specific headers while invoking the APIs
+
+``` go
+// Create client
+host, _ := url.Parse("apigatewayUrl") // url.Url for apigateway
+role := "arn:aws:iam::{{accounttId}}:role/role_name" // role with access to execute api
+region := "us-west-2" // region of gateway
+headers := map[string]string { "content-type":"application/json"} //headers to be passed
+client := apigateway.NewWithHeaders(host, region, &role, headers)
+```
+
 If your favorite HTTP verb is not present in our helpers, you may use the Do function
 
 ``` go
