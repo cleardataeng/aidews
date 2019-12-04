@@ -11,4 +11,5 @@ type Service interface {
 	Get(string, url.Values) (*http.Response, error)
 	Put(string, interface{}) (*http.Response, error)
 	Post(string, interface{}) (*http.Response, error)
+	SetHeaders(map[string]string)
 }

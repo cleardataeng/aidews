@@ -36,7 +36,11 @@ func New(host *url.URL, region string, roleARN *string) *Service {
 
 // NewWithHeaders returns an API with which you can make API Gateway signed requests with headers.
 func NewWithHeaders(host *url.URL, region string, roleARN *string, headers map[string]string) *Service {
-	s := aidews.Session(&region, roleARN)
+	svc := New(host, region, roleARN)
+	svc.SetHeaders(headers)
+	return svc
+}
+
 // NewWithSession returns an API like New but with a given Session.
 func NewWithSession(host *url.URL, session *session.Session) *Service {
 	return &Service{
@@ -102,6 +106,11 @@ func (svc *Service) Put(path string, body interface{}) (*http.Response, error) {
 	}
 	req, _ := http.NewRequest("PUT", u.String(), seeker)
 	return svc.Do(req)
+}
+
+// SetHeaders for the API service.
+func (svc *Service) SetHeaders(headers map[string]string) {
+	svc.headers = headers
 }
 
 // URL adds a valid path to the Gateway host and adds an encoded query string.
