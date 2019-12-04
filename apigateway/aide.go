@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/cleardataeng/aidews"
 )
@@ -29,20 +30,26 @@ type Service struct {
 
 // New returns an API with which you can make API Gateway signed requests.
 func New(host *url.URL, region string, roleARN *string) *Service {
-	return NewWithHeaders(host, region, roleARN, nil)
+	s := aidews.Session(&region, roleARN)
+	return NewWithSession(host, s)
 }
 
 // NewWithHeaders returns an API with which you can make API Gateway signed requests with headers.
 func NewWithHeaders(host *url.URL, region string, roleARN *string, headers map[string]string) *Service {
-	s := aidews.Session(&region, roleARN)
+	svc := New(host, region, roleARN)
+	svc.SetHeaders(headers)
+	return svc
+}
+
+// NewWithSession returns an API like New but with a given Session.
+func NewWithSession(host *url.URL, session *session.Session) *Service {
 	return &Service{
-		signer: v4.NewSigner(s.Config.Credentials),
+		signer: v4.NewSigner(session.Config.Credentials),
 		host:   host,
-		region: s.Config.Region,
+		region: session.Config.Region,
 		http: &http.Client{
 			Timeout: time.Second * 60,
 		},
-		headers: headers,
 	}
 }
 
@@ -99,6 +106,11 @@ func (svc *Service) Put(path string, body interface{}) (*http.Response, error) {
 	}
 	req, _ := http.NewRequest("PUT", u.String(), seeker)
 	return svc.Do(req)
+}
+
+// SetHeaders for the API service.
+func (svc *Service) SetHeaders(headers map[string]string) {
+	svc.headers = headers
 }
 
 // URL adds a valid path to the Gateway host and adds an encoded query string.
