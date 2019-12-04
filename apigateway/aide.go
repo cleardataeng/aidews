@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/cleardataeng/aidews"
 )
@@ -35,14 +36,15 @@ func New(host *url.URL, region string, roleARN *string) *Service {
 // NewWithHeaders returns an API with which you can make API Gateway signed requests with headers.
 func NewWithHeaders(host *url.URL, region string, roleARN *string, headers map[string]string) *Service {
 	s := aidews.Session(&region, roleARN)
+// NewWithSession returns an API like New but with a given Session.
+func NewWithSession(host *url.URL, session *session.Session) *Service {
 	return &Service{
-		signer: v4.NewSigner(s.Config.Credentials),
+		signer: v4.NewSigner(session.Config.Credentials),
 		host:   host,
-		region: s.Config.Region,
+		region: session.Config.Region,
 		http: &http.Client{
 			Timeout: time.Second * 60,
 		},
-		headers: headers,
 	}
 }
 
