@@ -30,7 +30,8 @@ type Service struct {
 
 // New returns an API with which you can make API Gateway signed requests.
 func New(host *url.URL, region string, roleARN *string) *Service {
-	return NewWithHeaders(host, region, roleARN, nil)
+	s := aidews.Session(&region, roleARN)
+	return NewWithSession(host, s)
 }
 
 // NewWithHeaders returns an API with which you can make API Gateway signed requests with headers.
