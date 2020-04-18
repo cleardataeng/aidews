@@ -120,3 +120,8 @@ func (svc *Service) ListObjectsKeysV2Pages(params *s3.ListObjectsV2Input) ([]str
 	}
 	return keys, islastPage, nil
 }
+
+//ListObjectsV2Input wrapper over the s3 api for getting input params
+func (svc *Service) ListObjectsV2Input() *s3.ListObjectsV2Input {
+	return &s3.ListObjectsV2Input{}
+}
