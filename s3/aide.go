@@ -94,3 +94,29 @@ func (svc *Service) SetACL(v *string) {
 func (svc *Service) SetSSE(v *string) {
 	svc.sse = v
 }
+
+// ListObjectsKeysV2Pages will list the bucket keys page-wise
+func (svc *Service) ListObjectsKeysV2Pages(params *s3.ListObjectsV2Input) ([]string, bool, error) {
+
+	var keys []string
+	var islastPage bool
+	listObjectsOutputFn := func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+		if page.Contents != nil {
+			for _, obj := range page.Contents {
+				if obj.Key == nil {
+					continue
+				}
+				keys = append(keys, *obj.Key)
+			}
+			islastPage = lastPage
+		}
+		return false
+	}
+
+	err := svc.svc.ListObjectsV2Pages(params, listObjectsOutputFn)
+
+	if err != nil {
+		return nil, islastPage, err
+	}
+	return keys, islastPage, nil
+}

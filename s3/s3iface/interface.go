@@ -13,4 +13,5 @@ type Service interface {
 	ReadUnmarshal(string, interface{}) error
 	SetACL(*string)
 	SetSSE(*string)
+	ListObjectsKeysV2Pages(*s3.ListObjectsV2Input) ([]string, bool, error)
 }
