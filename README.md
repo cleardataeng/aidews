@@ -136,10 +136,10 @@ Example:
 
 ```go
 var listObjectsInput = svc.ListObjectsV2Input()
-	listObjectsInput.Bucket = aws.String(bucketName)
-	listObjectsInput.Prefix = &prefix
-	listObjectsInput.StartAfter = &startAfter
-	listObjectsInput.MaxKeys = &pageSize
+listObjectsInput.Bucket = aws.String(bucketName)
+listObjectsInput.Prefix = &prefix
+listObjectsInput.StartAfter = &startAfter
+listObjectsInput.MaxKeys = &pageSize
 ```
 
 ListObjectsKeysV2Pages returns the paginated response by listing the the specified number of keys from the 'Content' object array. The lastPage output indicated whether s3 reached last page in fetching the objects
