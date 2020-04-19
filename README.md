@@ -135,6 +135,8 @@ ListObjectsV2Input returns an expression that can be used to add the input param
 Example:
 
 ```go
+svc := s3.New(bucketName, &region, &roleARN)
+
 var listObjectsInput = svc.ListObjectsV2Input()
 listObjectsInput.Bucket = aws.String(bucketName)
 listObjectsInput.Prefix = &prefix
