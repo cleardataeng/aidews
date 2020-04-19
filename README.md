@@ -126,3 +126,26 @@ if err := ScanPages(queryInput, item, pager); err != nil {
 }
 ```
 
+## s3
+
+Package s3 provides a S3 wrapper object.
+
+ListObjectsV2Input returns an expression that can be used to add the input params supported in V2 of s3 api
+
+Example:
+
+```go
+var listObjectsInput = svc.ListObjectsV2Input()
+	listObjectsInput.Bucket = aws.String(bucketName)
+	listObjectsInput.Prefix = &prefix
+	listObjectsInput.StartAfter = &startAfter
+	listObjectsInput.MaxKeys = &pageSize
+```
+
+ListObjectsKeysV2Pages returns the paginated response by listing the the specified number of keys from the 'Content' object array. The lastPage output indicated whether s3 reached last page in fetching the objects
+
+Example:
+
+```go
+keys, lastPage, err := svc.ListObjectsKeysV2Pages(listObjectsInput)
+```
