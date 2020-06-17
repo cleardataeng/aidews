@@ -80,7 +80,10 @@ func (svc *Service) Get(path string, qs url.Values) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req, _ := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 	return svc.Do(req)
 }
 
@@ -92,19 +95,28 @@ func (svc *Service) Post(path string, body interface{}) (*http.Response, error) 
 	if err != nil {
 		return nil, err
 	}
-	req, _ := http.NewRequest("POST", u.String(), seeker)
+	req, err := http.NewRequest("POST", u.String(), seeker)
+	if err != nil {
+		return nil, err
+	}
 	return svc.Do(req)
 }
 
 // Put to given path.
 func (svc *Service) Put(path string, body interface{}) (*http.Response, error) {
-	b, _ := json.Marshal(body)
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
 	seeker := bytes.NewReader(b)
 	u, err := svc.URL(path, nil)
 	if err != nil {
 		return nil, err
 	}
-	req, _ := http.NewRequest("PUT", u.String(), seeker)
+	req, err := http.NewRequest("PUT", u.String(), seeker)
+	if err != nil {
+		return nil, err
+	}
 	return svc.Do(req)
 }
 
