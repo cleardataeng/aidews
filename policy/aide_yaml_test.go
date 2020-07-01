@@ -101,12 +101,13 @@ Action: []
 
 func TestIAMPolicyStatementNotEmptyYAML(t *testing.T) {
 	policy := IAMPolicyStatement{
-		ID:        "12",
-		Effect:    "allow",
-		Action:    StrOrSlice{"iam:Login"},
-		Resource:  StrOrSlice{"iam:"},
-		Principal: map[string]StrOrSlice{"AWS": StrOrSlice{"iam"}},
-		Condition: map[string]interface{}{"String": "matching ARN"},
+		ID:           "12",
+		Effect:       "allow",
+		Action:       StrOrSlice{"iam:Login"},
+		Resource:     StrOrSlice{"iam:"},
+		NotPrincipal: map[string]StrOrSlice{"AWS": StrOrSlice{"you"}},
+		Principal:    map[string]StrOrSlice{"AWS": StrOrSlice{"iam"}},
+		Condition:    map[string]interface{}{"String": "matching ARN"},
 	}
 	out, err := yaml.Marshal(policy)
 	if err != nil {
@@ -116,6 +117,8 @@ func TestIAMPolicyStatementNotEmptyYAML(t *testing.T) {
 Effect: allow
 Action: iam:Login
 Resource: '''iam:'''
+NotPrincipal:
+  AWS: you
 Principal:
   AWS: iam
 Condition:
@@ -131,6 +134,8 @@ func TestIAMPolicyStatementUnmarshalYAML(t *testing.T) {
 Effect: allow
 Action: iam:Login
 Resource: '''iam:'''
+NotPrincipal:
+  AWS: you
 Principal:
   AWS: iam
 Condition:
@@ -146,5 +151,11 @@ Condition:
 	}
 	if policy.Action[0] != "iam:Login" {
 		t.Errorf("want: %s got: %s", "iam:Login", policy.Action)
+	}
+	if policy.NotPrincipal["AWS"][0] != "you" {
+		t.Errorf("want: %s got: %s", "you", policy.NotPrincipal["AWS"][0])
+	}
+	if policy.Principal["AWS"][0] != "iam" {
+		t.Errorf("want: %s got: %s", "iam", policy.Principal["AWS"][0])
 	}
 }
