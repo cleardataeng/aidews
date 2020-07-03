@@ -27,7 +27,9 @@ type IAMPolicyStatement struct {
 	Effect       string                 `yaml:"Effect"`
 	Action       StrOrSlice             `yaml:"Action"`
 	Resource     StrOrSlice             `json:",omitempty" yaml:"Resource,omitempty"`
+	NotAction    StrOrSlice             `json:",omitempty" yaml:"NotAction,omitempty"`
 	NotPrincipal map[string]StrOrSlice  `json:",omitempty" yaml:"NotPrincipal,omitempty"`
+	NotResource  StrOrSlice             `json:",omitempty" yaml:"NotResource,omitempty"`
 	Principal    map[string]StrOrSlice  `json:",omitempty" yaml:"Principal,omitempty"`
 	Condition    map[string]interface{} `json:",omitempty" yaml:"Condition,omitempty"`
 }

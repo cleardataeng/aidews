@@ -116,7 +116,9 @@ func TestIAMPolicyStatementNotEmptyJSON(t *testing.T) {
 	policy := IAMPolicyStatement{
 		ID:           "12",
 		Resource:     StrOrSlice{"iam:"},
+		NotAction:    StrOrSlice{"Any"},
 		NotPrincipal: map[string]StrOrSlice{"AWS": StrOrSlice{"youare"}},
+		NotResource:  StrOrSlice{"complete:arn"},
 		Principal:    map[string]StrOrSlice{"AWS": StrOrSlice{"iam"}},
 		Condition:    map[string]interface{}{"String": "matching ARN"},
 	}
@@ -124,7 +126,7 @@ func TestIAMPolicyStatementNotEmptyJSON(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error; got: %s", err)
 	}
-	want := `{"Sid":"12","Effect":"","Action":null,"Resource":"iam:","NotPrincipal":{"AWS":"youare"},"Principal":{"AWS":"iam"},"Condition":{"String":"matching ARN"}}`
+	want := `{"Sid":"12","Effect":"","Action":null,"Resource":"iam:","NotAction":"Any","NotPrincipal":{"AWS":"youare"},"NotResource":"complete:arn","Principal":{"AWS":"iam"},"Condition":{"String":"matching ARN"}}`
 	if string(out) != want {
 		t.Errorf("unexpected out; want: %s got %s", want, string(out))
 	}
