@@ -23,12 +23,15 @@ type IAMPolicy struct {
 
 // IAMPolicyStatement is a statement object within an AWS IAM policy.
 type IAMPolicyStatement struct {
-	ID        string                 `json:"Sid,omitempty" yaml:"Sid,omitempty"`
-	Effect    string                 `yaml:"Effect"`
-	Action    StrOrSlice             `yaml:"Action"`
-	Resource  StrOrSlice             `json:",omitempty" yaml:"Resource,omitempty"`
-	Principal map[string]StrOrSlice  `json:",omitempty" yaml:"Principal,omitempty"`
-	Condition map[string]interface{} `json:",omitempty" yaml:"Condition,omitempty"`
+	ID           string                 `json:"Sid,omitempty" yaml:"Sid,omitempty"`
+	Effect       string                 `yaml:"Effect"`
+	Action       StrOrSlice             `yaml:"Action"`
+	Resource     StrOrSlice             `json:",omitempty" yaml:"Resource,omitempty"`
+	NotAction    StrOrSlice             `json:",omitempty" yaml:"NotAction,omitempty"`
+	NotPrincipal map[string]StrOrSlice  `json:",omitempty" yaml:"NotPrincipal,omitempty"`
+	NotResource  StrOrSlice             `json:",omitempty" yaml:"NotResource,omitempty"`
+	Principal    map[string]StrOrSlice  `json:",omitempty" yaml:"Principal,omitempty"`
+	Condition    map[string]interface{} `json:",omitempty" yaml:"Condition,omitempty"`
 }
 
 // StrOrSlice is a helper for objects that could be strings or slices.
