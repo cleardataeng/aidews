@@ -6,6 +6,7 @@
 package dynamodb
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -28,7 +29,12 @@ func New(region, roleARN *string) *Service {
 
 // GetItem and unmarshal response items into given interface{}.
 func (svc *Service) GetItem(in *dynamodb.GetItemInput, out interface{}) error {
-	resp, err := svc.svc.GetItem(in)
+	return svc.GetItemWithContext(context.TODO(), in, out)
+}
+
+// GetItemWithContext and unmarshal response items into given interface{}.
+func (svc *Service) GetItemWithContext(ctx context.Context, in *dynamodb.GetItemInput, out interface{}) error {
+	resp, err := svc.svc.GetItemWithContext(ctx, in)
 	if err != nil {
 		return err
 	}
@@ -38,28 +44,44 @@ func (svc *Service) GetItem(in *dynamodb.GetItemInput, out interface{}) error {
 	return dynamodbattribute.UnmarshalMap(resp.Item, out)
 }
 
-// PutItem by marshalling the given interafce{} into the given PutItemInput.
+// PutItem by marshalling the given interface{} into the given PutItemInput.
 func (svc *Service) PutItem(in *dynamodb.PutItemInput, item interface{}) (out *dynamodb.PutItemOutput, err error) {
+	return svc.PutItemWithContext(context.TODO(), in, item)
+}
+
+// PutItemWithContext by marshalling the given interface{} into the given PutItemInput.
+func (svc *Service) PutItemWithContext(ctx context.Context, in *dynamodb.PutItemInput, item interface{}) (out *dynamodb.PutItemOutput, err error) {
 	if in.Item, err = dynamodbattribute.MarshalMap(item); err != nil {
 		return nil, err
 	}
-	return svc.svc.PutItem(in)
+	return svc.svc.PutItemWithContext(ctx, in)
 }
 
 // Query the table and unmarshal all results.
 func (svc *Service) Query(in *dynamodb.QueryInput, out interface{}) error {
+	return svc.QueryWithContext(context.TODO(), in, out)
+}
+
+// QueryWithContext the table and unmarshal all results.
+func (svc *Service) QueryWithContext(ctx context.Context, in *dynamodb.QueryInput, out interface{}) error {
 	items := []map[string]*dynamodb.AttributeValue{}
 	pager := func(out *dynamodb.QueryOutput, last bool) bool {
 		items = append(items, out.Items...)
 		return !last
 	}
-	if err := svc.svc.QueryPages(in, pager); err != nil {
+	if err := svc.svc.QueryPagesWithContext(ctx, in, pager); err != nil {
 		return err
 	}
 	return dynamodbattribute.UnmarshalListOfMaps(items, out)
 }
 
 // QueryPages queries the table and unmarshals each page of results to provided function.
+// See QueryPagesWithContext
+func (svc *Service) QueryPages(in *dynamodb.QueryInput, outItem interface{}, outPager func(interface{}, bool) bool) error {
+	return svc.QueryPagesWithContext(context.TODO(), in, outItem, outPager)
+}
+
+// QueryPagesWithContext queries the table and unmarshals each page of results to provided function.
 // Caller should provide an item of some type that will be populated and each item will be
 // returned to the provided pager function.
 // Provided pager function should take a single interface{} and assert the type of the item (e.g. Item),
@@ -74,7 +96,7 @@ func (svc *Service) Query(in *dynamodb.QueryInput, out interface{}) error {
 // if err := QueryPages(queryInput, item, pager); err != nil {
 //	return err
 // }
-func (svc *Service) QueryPages(in *dynamodb.QueryInput, outItem interface{}, outPager func(interface{}, bool) bool) error {
+func (svc *Service) QueryPagesWithContext(ctx context.Context, in *dynamodb.QueryInput, outItem interface{}, outPager func(interface{}, bool) bool) error {
 	var marshallErr error
 	pager := func(pageOut *dynamodb.QueryOutput, last bool) bool {
 		for _, item := range pageOut.Items {
@@ -88,7 +110,7 @@ func (svc *Service) QueryPages(in *dynamodb.QueryInput, outItem interface{}, out
 		}
 		return !last
 	}
-	if err := svc.svc.QueryPages(in, pager); err != nil {
+	if err := svc.svc.QueryPagesWithContext(ctx, in, pager); err != nil {
 		return err
 	}
 	return marshallErr
@@ -96,18 +118,29 @@ func (svc *Service) QueryPages(in *dynamodb.QueryInput, outItem interface{}, out
 
 // Scan the table and return all results.
 func (svc *Service) Scan(in *dynamodb.ScanInput, out interface{}) error {
+	return svc.ScanWithContext(context.TODO(), in, out)
+}
+
+// ScanWithContext the table and return all results.
+func (svc *Service) ScanWithContext(ctx context.Context, in *dynamodb.ScanInput, out interface{}) error {
 	items := []map[string]*dynamodb.AttributeValue{}
 	pager := func(out *dynamodb.ScanOutput, last bool) bool {
 		items = append(items, out.Items...)
 		return !last
 	}
-	if err := svc.svc.ScanPages(in, pager); err != nil {
+	if err := svc.svc.ScanPagesWithContext(ctx, in, pager); err != nil {
 		return err
 	}
 	return dynamodbattribute.UnmarshalListOfMaps(items, out)
 }
 
 // ScanPages scans the table and unmarshals each page of results to provided function.
+//See ScanPagesWithContext
+func (svc *Service) ScanPages(in *dynamodb.ScanInput, outItem interface{}, outPager func(interface{}, bool) bool) error {
+	return svc.ScanPagesWithContext(context.TODO(), in, outItem, outPager)
+}
+
+// ScanPagesWithContext scans the table and unmarshals each page of results to provided function.
 // Caller should provide an item of some type that will be populated and each item will be
 // returned to the provided pager function.
 // Provided pager function should take a single interface{} and assert the type of the item (e.g. Item),
@@ -122,7 +155,7 @@ func (svc *Service) Scan(in *dynamodb.ScanInput, out interface{}) error {
 // if err := ScanPages(queryInput, item, pager); err != nil {
 //	return err
 // }
-func (svc *Service) ScanPages(in *dynamodb.ScanInput, outItem interface{}, outPager func(interface{}, bool) bool) error {
+func (svc *Service) ScanPagesWithContext(ctx context.Context, in *dynamodb.ScanInput, outItem interface{}, outPager func(interface{}, bool) bool) error {
 	var marshallErr error
 	pager := func(pageOut *dynamodb.ScanOutput, last bool) bool {
 		for _, item := range pageOut.Items {
@@ -136,7 +169,7 @@ func (svc *Service) ScanPages(in *dynamodb.ScanInput, outItem interface{}, outPa
 		}
 		return !last
 	}
-	if err := svc.svc.ScanPages(in, pager); err != nil {
+	if err := svc.svc.ScanPagesWithContext(ctx, in, pager); err != nil {
 		return err
 	}
 	return marshallErr
