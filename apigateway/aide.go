@@ -89,21 +89,15 @@ func (svc *Service) Get(path string, qs url.Values) (*http.Response, error) {
 
 // Post to given path.
 func (svc *Service) Post(path string, body interface{}) (*http.Response, error) {
-	b, _ := json.Marshal(body)
-	seeker := bytes.NewReader(b)
-	u, err := svc.URL(path, nil)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest("POST", u.String(), seeker)
-	if err != nil {
-		return nil, err
-	}
-	return svc.Do(req)
+	return svc.perform("POST", path, body)
 }
 
 // Put to given path.
 func (svc *Service) Put(path string, body interface{}) (*http.Response, error) {
+	return svc.perform("PUT", path, body)
+}
+
+func (svc *Service) perform(operation string, path string, body interface{}) (*http.Response, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -113,11 +107,16 @@ func (svc *Service) Put(path string, body interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("PUT", u.String(), seeker)
+	req, err := http.NewRequest(operation, u.String(), seeker)
 	if err != nil {
 		return nil, err
 	}
 	return svc.Do(req)
+}
+
+// Delete to given path.
+func (svc *Service) Delete(path string, body interface{}) (*http.Response, error) {
+	return svc.perform("DELETE", path, body)
 }
 
 // SetHeaders for the API service.
