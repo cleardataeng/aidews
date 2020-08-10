@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/cleardataeng/aidews"
+	"github.com/cleardataeng/aidews/apigateway/apigatewayiface"
 )
 
 // HTTPClient is an interface for the http.Client.
@@ -27,6 +28,8 @@ type Service struct {
 	region  *string
 	headers map[string]string
 }
+
+var _ apigatewayiface.Service = (*Service)(nil)
 
 // New returns an API with which you can make API Gateway signed requests.
 func New(host *url.URL, region string, roleARN *string) *Service {
